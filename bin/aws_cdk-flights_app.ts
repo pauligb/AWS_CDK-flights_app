@@ -1,11 +1,19 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
-import { AwsCdkFlightsAppStack } from '../lib/aws_cdk-flights_app-stack';
 import { DatabaseStack } from '../lib/database-stack';
+import { ComputeStack } from '../lib/compute-stack';
+import { AuthStack } from '../lib/auth-stack';
 
 const app = new cdk.App();
 const databaseStack = new DatabaseStack(app, "DatabaseStack");
+const computeStack = new ComputeStack(app, "ComputeStack", {
+  usersTable: databaseStack.usersTable,
+});
+
+const authStack = new AuthStack(app, "AuthStack", {
+  addUserPostConfirmation: computeStack.addUserToUsersTableFunc,
+})
 
 // new AwsCdkFlightsAppStack(app, 'AwsCdkFlightsAppStack', {
 //   /* If you don't specify 'env', this stack will be environment-agnostic.

@@ -5,11 +5,16 @@ import { DatabaseStack } from '../lib/database-stack';
 import { ComputeStack } from '../lib/compute-stack';
 import { AuthStack } from '../lib/auth-stack';
 import { ApiStack } from '../lib/api-stack';
+import { EventBridgeStack } from '../lib/eventbus-stack';
 
 const app = new cdk.App();
+
 const databaseStack = new DatabaseStack(app, "DatabaseStack");
+
 const computeStack = new ComputeStack(app, "ComputeStack", {
   usersTable: databaseStack.usersTable,
+  flightTable: databaseStack.flightsTable,
+  seatsTable: databaseStack.seatsTable
 });
 
 const authStack = new AuthStack(app, "AuthStack", {
@@ -19,6 +24,12 @@ const authStack = new AuthStack(app, "AuthStack", {
 const apiStack = new ApiStack(app, "ApiStack", {
   bookingLambdaIntegration: computeStack.bookingLambdaIntegration,
   userPool: authStack.userPool
+});
+
+const eventStack = new EventBridgeStack(app, "EventBridgeStack", {
+  syncFlights: computeStack.syncFlightRuleFunc,
+  registerBooking: computeStack.registerBookingFun,
+  emailReceipt: computeStack.sendEmailFunc
 });
 
 // new AwsCdkFlightsAppStack(app, 'AwsCdkFlightsAppStack', {

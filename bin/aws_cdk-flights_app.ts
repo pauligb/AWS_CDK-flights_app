@@ -4,6 +4,7 @@ import * as cdk from 'aws-cdk-lib';
 import { DatabaseStack } from '../lib/database-stack';
 import { ComputeStack } from '../lib/compute-stack';
 import { AuthStack } from '../lib/auth-stack';
+import { ApiStack } from '../lib/api-stack';
 
 const app = new cdk.App();
 const databaseStack = new DatabaseStack(app, "DatabaseStack");
@@ -14,6 +15,11 @@ const computeStack = new ComputeStack(app, "ComputeStack", {
 const authStack = new AuthStack(app, "AuthStack", {
   addUserPostConfirmation: computeStack.addUserToUsersTableFunc,
 })
+
+const apiStack = new ApiStack(app, "ApiStack", {
+  bookingLambdaIntegration: computeStack.bookingLambdaIntegration,
+  userPool: authStack.userPool
+});
 
 // new AwsCdkFlightsAppStack(app, 'AwsCdkFlightsAppStack', {
 //   /* If you don't specify 'env', this stack will be environment-agnostic.

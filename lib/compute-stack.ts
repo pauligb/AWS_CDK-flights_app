@@ -26,9 +26,10 @@ export class ComputeStack extends cdk.Stack {
         this.bookingLambdaIntegration = this.bookSeats(props);
         this.registerBookingFun = this.registerBooking(props);
         this.syncFlightRuleFunc = this.syncFlights(props);
+        this.sendEmailFunc = this.sendEmail(props);
     }
 
-    addUserToUsersTable(props: ComputeStackProps) {
+    addUserToUsersTable(props: ComputeStackProps): NodejsFunction{
         const funct = new NodejsFunction(this, "addUserFunc", {
             functionName: 'addUserFunc',
             runtime: Runtime.NODEJS_18_X,
@@ -76,7 +77,7 @@ export class ComputeStack extends cdk.Stack {
         return new LambdaIntegration(funct);
     }
 
-    registerBooking(props: ComputeStackProps) {
+    registerBooking(props: ComputeStackProps): NodejsFunction {
         const funct = new NodejsFunction(this, "registerBookingFunc", {
             functionName: 'RegisterBooking',
             runtime: Runtime.NODEJS_18_X,
@@ -99,7 +100,7 @@ export class ComputeStack extends cdk.Stack {
         return funct;
     }
 
-    syncFlights(props: ComputeStackProps) {
+    syncFlights(props: ComputeStackProps): NodejsFunction {
         const funct = new NodejsFunction(this, "syncFlightsFunc", {
             functionName: 'SyncFlightsBooking',
             runtime: Runtime.NODEJS_18_X,
@@ -119,6 +120,30 @@ export class ComputeStack extends cdk.Stack {
                 ],
             })
         );
+        return funct;
+    }
+
+    sendEmail(props: ComputeStackProps): NodejsFunction {
+        const funct = new NodejsFunction(this, "sendEmailFunc", {
+            functionName: 'SendEmail',
+            runtime: Runtime.NODEJS_18_X,
+            handler: 'handler',
+            entry: path.join(
+                __dirname,
+                '../functions/SendBookingEmail/index.ts'
+            ),
+        });
+        funct.addToRolePolicy(
+            new iam.PolicyStatement({
+                actions: [ "ses:*", "dynamodb:*" ],
+                resources: [
+                    props.usersTable.tableArn as string,
+                    props.usersTable.tableArn + "/index/usernameIndex",
+                    "*"
+                ]     
+            })
+        )
+
         return funct;
     }
 }
